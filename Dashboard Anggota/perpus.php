@@ -1,3 +1,16 @@
+<?php
+session_start();
+// Cek apakah user sudah login
+if (!isset($_SESSION['nama'])) {
+    // Tampilkan Alert JS dulu, baru redirect
+    echo '<script type="text/javascript">';
+    echo 'alert("Silakan login terlebih dahulu!");';
+    echo 'window.location.href = "../Login/login.php";';
+    echo '</script>';
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,22 +20,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="icon" href="../Gambar/logpmi.png" type="image/png">
   <style>
-    /* --- CSS VARIABLES (Sama Persis dengan Pengurus) --- */
+    /* --- 1. CSS VARIABLES (Sama Persis dengan Halaman Lain) --- */
     :root {
       --primary-color: #d90429; /* PMR Red */
-      --primary-hover: #ef233c;
-      --secondary-color: #2b2d42;
+      --primary-hover: #c92a2a;
       --bg-color: #f8f9fa;
       --card-bg: #ffffff;
-      --text-color: #333333;
-      --text-muted: #6c757d;
-      --border-color: #e9ecef;
-      --success-color: #27ae60;
-      --warning-color: #f39c12;
-      --danger-color: #e74c3c;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
-      --radius: 10px;
+      --text-color: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+      --radius: 12px;
+      --header-height: 70px;
     }
 
     * {
@@ -32,20 +47,24 @@
     }
 
     body {
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       line-height: 1.6;
     }
 
-    /* --- HEADER (SAMA PERSIS) --- */
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* --- 2. HEADER & NAVBAR (Konsisten) --- */
     header {
       background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: var(--shadow-sm);
       position: fixed;
       width: 100%;
+      top: 0;
       z-index: 1000;
-      animation: fadeSlideUp 1s ease-out;
+      height: var(--header-height);
     }
 
     .navbar {
@@ -53,134 +72,112 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
-      opacity: 0;
-      transform: translateY(-20px);
-      animation: fadeInDown 1s ease forwards;
+      height: 100%;
+      padding: 0 20px;
     }
 
     .logo {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-weight: bold;
-      color: #000000;
+      font-weight: 700;
       font-size: 18px;
+      color: #000;
     }
 
-    .logo img {
-      height: 40px;
-    }
-
-    @keyframes fadeInDown {
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .logo img { height: 40px; }
 
     .menu-toggle {
       display: none;
       background: none;
       border: none;
-      font-size: 22px;
+      font-size: 24px;
       cursor: pointer;
       color: var(--primary-color);
     }
 
-    /* --- LAYOUT UTAMA --- */
+    .back-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--primary-color);
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    /* --- 3. LAYOUT UTAMA --- */
     .dashboard-container {
       display: flex;
       min-height: 100vh;
-      padding-top: 70px; /* Space for fixed header */
+      padding-top: var(--header-height);
     }
 
-    /* --- SIDEBAR (SAMA PERSIS) --- */
+    /* --- 4. SIDEBAR (Konsisten) --- */
     .sidebar {
       width: 250px;
-      background: #ffffff;
-      padding-top: 20px;
+      background: #fff;
       border-right: 1px solid var(--border-color);
-      transition: transform 0.3s ease;
-      height: calc(100vh - 70px);
       position: sticky;
-      top: 70px;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
       overflow-y: auto;
-    }
-
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+      z-index: 900;
     }
 
     .sidebar li {
       padding: 14px 25px;
       cursor: pointer;
-      color: var(--text-color);
+      color: var(--text-color); /* Item Hitam/Jelas */
+      font-weight: 500;
       display: flex;
       align-items: center;
       gap: 12px;
-      transition: 0.3s;
-      width: 100%;
-      font-weight: 500;
       border-left: 4px solid transparent;
+      transition: all 0.2s;
     }
 
-    .sidebar li:hover {
-      background-color: #fff0f3;
-      color: var(--primary-color);
-    }
-
-    .sidebar li.active {
-      background-color: #fff0f3;
+    .sidebar li:hover, .sidebar li.active {
+      background-color: #fff1f1;
       color: var(--primary-color);
       border-left-color: var(--primary-color);
     }
 
-    .sidebar a {
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
+    .sidebar a { display: flex; align-items: center; gap: 10px; width: 100%; }
 
-    /* --- MAIN CONTENT --- */
+    /* --- 5. MAIN CONTENT --- */
     .main-content {
       flex: 1;
       padding: 30px;
-      width: calc(100% - 250px);
     }
 
     /* Page Header */
     .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
 
-    .header-titles h1 {
-      font-size: 1.5rem;
+    .page-header h1 {
+      font-size: 1.75rem;
       color: var(--primary-color);
       margin-bottom: 5px;
     }
 
-    .header-titles p {
+    .page-header p {
       color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     /* --- BUTTON STYLES --- */
     .btn {
       padding: 10px 20px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.3s ease;
+      transition: all 0.2s;
       font-size: 0.9rem;
     }
 
@@ -191,7 +188,6 @@
 
     .btn-primary:hover {
       background-color: var(--primary-hover);
-      transform: translateY(-2px);
     }
 
     /* --- FILTER SECTION --- */
@@ -202,9 +198,10 @@
       box-shadow: var(--shadow-sm);
       margin-bottom: 30px;
       display: flex;
-      gap: 15px;
+      gap: 20px;
       flex-wrap: wrap;
       align-items: flex-end;
+      border: 1px solid var(--border-color);
     }
 
     .filter-item {
@@ -215,17 +212,19 @@
     .filter-item label {
       display: block;
       margin-bottom: 8px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-muted);
+      margin-left: 4px;
     }
 
     .filter-control {
       width: 100%;
       padding: 10px 15px;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 0.95rem;
+      outline: none;
       background-color: #fff;
       transition: border-color 0.3s;
     }
@@ -239,7 +238,7 @@
     /* --- MATERIALS GRID --- */
     .materials-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 25px;
       margin-bottom: 40px;
     }
@@ -269,15 +268,15 @@
     }
 
     .file-icon {
-      width: 45px;
-      height: 45px;
+      width: 48px;
+      height: 48px;
       background: #ffebee;
       color: var(--primary-color);
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       flex-shrink: 0;
     }
 
@@ -292,7 +291,7 @@
       font-weight: 700;
       letter-spacing: 0.5px;
       color: var(--primary-color);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       display: inline-block;
     }
 
@@ -300,10 +299,9 @@
       font-size: 1.1rem;
       font-weight: 700;
       color: var(--text-color);
-      margin-bottom: 0;
+      margin: 0;
       line-height: 1.4;
       display: -webkit-box;
-      
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -318,9 +316,9 @@
       color: var(--text-muted);
       line-height: 1.5;
       display: -webkit-box;
-      
       -webkit-box-orient: vertical;
       overflow: hidden;
+      -webkit-line-clamp: 3;
     }
 
     .card-footer {
@@ -335,13 +333,13 @@
       background-color: var(--primary-color);
       color: white;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.3s;
     }
 
@@ -352,75 +350,17 @@
 
     /* --- RESPONSIVE --- */
     @media (max-width: 992px) {
-      .main-content {
-        width: 100%;
-        padding: 20px;
-      }
+      .main-content { width: 100%; padding: 20px; }
       
       .sidebar {
-        width: 250px;
-        position: fixed;
-        top: 70px;
-        left: -250px;
-        height: calc(100vh - 70px);
-        z-index: 999;
+        position: fixed; top: var(--header-height); left: -260px;
         box-shadow: 2px 0 10px rgba(0,0,0,0.1);
       }
+      .sidebar.active { left: 0; }
+      .menu-toggle, .back-btn { display: block; }
       
-      .sidebar.active {
-        left: 0;
-      }
-      
-      .menu-toggle {
-        display: block;
-      }
-
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .materials-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .filter-container {
-        flex-direction: column;
-        align-items: stretch;
-      }
-    }
-
-    /* Tombol Back Mobile */
-    .back-btn {
-      display: none;
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: var(--primary-color);
-      cursor: pointer;
-    }
-
-    @media (max-width: 992px) {
-      .back-btn {
-        display: block;
-        position: absolute;
-        left: 15px;
-        top: 20px;
-        z-index: 1001;
-      }
-
-      .logo {
-        margin: 0 auto;
-      }
-
-      .menu-toggle {
-        position: absolute;
-        right: 15px;
-        top: 18px;
-      }
+      .filter-container { flex-direction: column; align-items: stretch; }
+      .materials-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -447,20 +387,22 @@
     <aside class="sidebar">
       <ul>
         <li><a href="anggota.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-        <li><a href="absensi.html"><i class="fa-solid fa-calendar-check"></i> Rekap Absensi</a></li>
-        <li class="active"><a href="perpus.html"><i class="fa-solid fa-book"></i> Perpustakaan Digital</a></li>
-        <li><a href=""><i class="fa-solid fa-gamepad"></i> Quiz</a></li>
-        <li><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a></li>
+        <li><a href="absensi.php"><i class="fa-solid fa-calendar-check"></i> Rekap Absensi</a></li>
+        <li class="active"><a href="perpus.php"><i class="fa-solid fa-book"></i> Perpustakaan Digital</a></li>
+        <!-- LOGOUT: SUDAH DISAMAKAN DENGAN anggota.php -->
+        <li style="margin-top: 20px; border-top: 1px solid #eee;">
+            <a href="javascript:void(0)" onclick="confirmLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </a>
+        </li>
       </ul>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
       <div class="page-header">
-        <div class="header-titles">
-          <h1>Perpustakaan Digital</h1>
-          <p>Akses materi pelatihan dan panduan PMR secara gratis.</p>
-        </div>
+        <h1>Perpustakaan Digital</h1>
+        <p>Akses materi pelatihan dan panduan PMR secara gratis.</p>
       </div>
 
       <!-- Filter Section -->
@@ -481,7 +423,6 @@
             <option value="Kepalangmerahan">Kepalangmerahan</option>
             <option value="Pertolongan Bencana">Pertolongan Bencana</option>
             <option value="Kesehatan">Kesehatan</option>
-            <option value="Lainnya">Lainnya</option>
           </select>
         </div>
         
@@ -503,15 +444,15 @@
   </div>
 
   <script>
-    // --- Sidebar Logic ---
+    // --- Sidebar Logic (Sama dengan halaman lain) ---
     const menuToggle = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
     
-    menuToggle.addEventListener('click', () => {
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       sidebar.classList.toggle('active');
     });
 
-    // Close sidebar when clicking outside on mobile
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 992) {
         if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
@@ -561,34 +502,19 @@
         date: "05 Des 2022",
         fileName: "teknik_luka.pdf",
         fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-      },
-      {
-        id: 5,
-        title: "Sistem Tanggap Darurat Bencana",
-        description: "Penjelasan tentang sistem tanggap darurat bencana yang efektif di komunitas.",
-        category: "Pertolongan Bencana",
-        date: "18 Nov 2022",
-        fileName: "sistem_tanggap.pdf",
-        fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
       }
     ];
 
-    // --- State Management ---
     let materials = [...sampleMaterials];
-
-    // --- DOM Elements ---
     const materialsGrid = document.getElementById('materialsGrid');
 
-    // --- Initialization ---
     document.addEventListener('DOMContentLoaded', function() {
       renderMaterials();
       setupEventListeners();
     });
 
-    // --- Render Function ---
     function renderMaterials(filteredMaterials = null) {
       const materialsToRender = filteredMaterials || materials;
-      
       materialsGrid.innerHTML = '';
       
       if (materialsToRender.length === 0) {
@@ -628,14 +554,12 @@
       });
     }
 
-    // --- Event Listeners Setup ---
     function setupEventListeners() {
       document.getElementById('categoryFilter').addEventListener('change', filterMaterials);
       document.getElementById('searchFilter').addEventListener('input', filterMaterials);
       document.getElementById('sortFilter').addEventListener('change', filterMaterials);
     }
 
-    // --- Filter & Sort Logic ---
     function filterMaterials() {
       const category = document.getElementById('categoryFilter').value;
       const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
@@ -664,6 +588,15 @@
       
       renderMaterials(filtered);
     }
+    // TAMBAHKAN FUNGSI INI:
+  function confirmLogout() {
+    // Tampilkan pesan konfirmasi
+    if (confirm("Apakah Anda yakin ingin keluar dari akun?")) {
+      // Jika user klik 'OK', lempar ke halaman logout
+      window.location.href = "../logout.php";
+    }
+    // Jika 'Cancel', tidak terjadi apa-apa
+  }
   </script>
 </body>
 </html>

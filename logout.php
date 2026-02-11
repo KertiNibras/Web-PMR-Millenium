@@ -1,11 +1,13 @@
 <?php
 session_start();
 
-// Hapus semua session
+// Hapus semua data session
 session_unset();
+
+// Hapus session itu sendiri
 session_destroy();
 
-// Arahkan kembali ke halaman login
+// Redirect ke halaman login (Asumsi file ini ada di Root)
 header("Location: Login/login.php");
 exit;
 ?>

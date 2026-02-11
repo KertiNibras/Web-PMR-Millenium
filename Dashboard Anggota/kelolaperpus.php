@@ -1,3 +1,21 @@
+<?php
+session_start();
+// Cek Login
+if (!isset($_SESSION['nama'])) {
+    header("Location: ../Login/login.php");
+    exit;
+}
+
+// CEK ROLE: Hanya Pengurus yang boleh akses
+if ($_SESSION['role'] != 'pengurus') {
+    echo '<script>alert("AKSES DITOLAK! Halaman ini khusus Pengurus.");';
+    echo 'window.location.href="../Dashboard Anggota/anggota.php";</script>';
+    exit;
+}
+// ... lanjutkan kode kamu di bawah ini ...
+?>
+
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -96,7 +114,7 @@
     .sidebar {
       width: 250px;
       background: #ffffff;
-      padding-top: 20px;
+      padding-top: 0;
       border-right: 1px solid var(--border-color);
       transition: transform 0.3s ease;
       height: calc(100vh - 70px);
@@ -696,13 +714,18 @@
     <!-- SIDEBAR (Dibiarkan, namun styling disesuaikan agar konsisten) -->
     <aside class="sidebar">
       <ul>
-        <li><a href="../Dashboard Pengurus/pengurus.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-        <li><a href="../Dashboard Pengurus/kelolaabsen.html"><i class="fa-solid fa-calendar-check"></i> Kelola Absensi</a></li>
-        <li class="active"><a href="../Dashboard Pengurus/kelolaperpus.html"><i class="fa-solid fa-book"></i> Kelola Perpustakaan Digital</a></li>
-        <li><a href=""><i class="fa-solid fa-users"></i> Kelola Akun</a></li>
-        <li><a href=""><i class="fa-solid fa-gamepad"></i> Kelola Quiz</a></li>
-        <li><a href="../Dashboard Pengurus/kelolaabsen.html"><i class="fa-solid fa-pen-to-square"></i> Edit Beranda</a></li>
-        <li><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a></li>
+        <li><a href="../Dashboard Anggota/anggota.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+        <li><a href="../Dashboard Anggota/kelolaabsen.php"><i class="fa-solid fa-calendar-check"></i> Kelola Absensi</a></li>
+        <li class="active"><a href="../Dashboard Anggota/kelolaperpus.php"><i class="fa-solid fa-book"></i> Kelola Perpustakaan Digital</a></li>
+        <!-- <li><a href=""><i class="fa-solid fa-users"></i> Kelola Akun</a></li> -->
+        <!-- <li><a href=""><i class="fa-solid fa-gamepad"></i> Kelola Quiz</a></li> -->
+        <!-- <li><a href="../Dashboard Pengurus/kelolaabsen.php"><i class="fa-solid fa-pen-to-square"></i> Edit Beranda</a></li> -->
+        <!-- LOGOUT: SUDAH DISAMAKAN DENGAN anggota.php -->
+        <li style="margin-top: 20px; border-top: 1px solid #eee;">
+            <a href="javascript:void(0)" onclick="confirmLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </a>
+        </li>
       </ul>
     </aside>
 
@@ -1043,7 +1066,15 @@ function showToast(msg, type='success') {
   toastContainer.appendChild(t);
   setTimeout(()=>t.remove(),3000);
 }
+// TAMBAHKAN FUNGSI INI:
+  function confirmLogout() {
+    // Tampilkan pesan konfirmasi
+    if (confirm("Apakah Anda yakin ingin keluar dari akun?")) {
+      // Jika user klik 'OK', lempar ke halaman logout
+      window.location.href = "../logout.php";
+    }
+    // Jika 'Cancel', tidak terjadi apa-apa
+  }
 </script>
-
 </body>
 </html>

@@ -1,18 +1,23 @@
 <?php
 session_start();
-include '../koneksi.php'; // koneksi di root
+// Sesuaikan path koneksi sesuai struktur folder Anda
+include '../koneksi.php'; 
 
-// Jika tombol login ditekan
+// --- VARIABEL STATUS & PESAN ---
+ $status = null; 
+ $displayUsername = "";
+ $redirectLink = ""; 
+
+// --- LOGIKA LOGIN ---
 if (isset($_POST['login'])) {
 
-    $username     = mysqli_real_escape_string($koneksi, $_POST['username']);
+    $username = mysqli_real_escape_string($koneksi, $_POST['username']);
     $password = $_POST['password'];
 
     // Cari akun berdasarkan username
     $sql    = "SELECT * FROM users WHERE username = '$username'";
     $result = mysqli_query($koneksi, $sql);
 
-    // Jika akun ditemukan
     if (mysqli_num_rows($result) > 0) {
         $data = mysqli_fetch_assoc($result);
 
@@ -21,559 +26,174 @@ if (isset($_POST['login'])) {
 
             // Simpan data ke session
             $_SESSION['nama'] = $data['nama'];
-            $_SESSION['role'] = $data['role'];
+            $_SESSION['role'] = $data['role']; // PENTING: Simpan Role
             $_SESSION['username'] = $data['username'];
 
-            // Redirect sesuai role + kirim query success
-           // Simpan session untuk notifikasi sekali tampil
-$_SESSION['login_success'] = true;
+            // Tentukan Status Sukses
+            $status = 'success';
+            $displayUsername = $data['nama'];
 
-if ($data['role'] == 'anggota') {
-    header("Location: ../Dashboard Anggota/anggota.php");
-    exit;
-} 
-
-if ($data['role'] == 'pengurus') {
-    header("Location: ../Dashboard Pengurus/pengurus.php");
-    exit;
-}
-
+            // --- PERUBAHAN DISINI ---
+            // Arahkan SEMUA user (Anggota & Pengurus) ke file Dashboard yang sama
+            $redirectLink = '../Dashboard Anggota/anggota.php';
+            
+            // Jika kamu ingin langsung set notifikasi login success di dashboard
+            $_SESSION['login_success'] = true; 
 
         } else {
-            // Password salah
-            echo "<script>
-                    alert('Password salah!');
-                    window.location.href='login.php';
-                  </script>";
-            exit;
+            $status = 'error'; // Password salah
         }
 
     } else {
-        // username tidak ditemukan
-        echo "<script>
-                alert('Akun tidak ditemukan!');
-                window.location.href='login.php';
-              </script>";
-        exit;
+        $status = 'error'; // Username tidak ditemukan
     }
 }
 ?>
 
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="login.css">
-  <link rel="icon" href="../Gambar/logpmi.png" type="image/png">
-  <title>Login - PMR Millenium</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PMR Millenium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    body {
-      background-color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: absolute;
-      top: -30%;
-      left: -10%;
-      width: 140%;
-      height: 160%;
-      background: linear-gradient(120deg,
-          rgba(226, 56, 56, 0.18) 0%,
-          rgba(255, 193, 193, 0.12) 25%,
-          rgba(255, 255, 255, 0.02) 50%,
-          rgba(255, 230, 230, 0.06) 75%,
-          rgba(226, 56, 56, 0.12) 100%);
-      background-size: 300% 300%;
-      filter: blur(48px);
-      z-index: 0;
-      transform: rotate(8deg);
-      animation: bgShift 12s ease-in-out infinite;
-      border-radius: 30%;
-      pointer-events: none;
-    }
-
-    /* subtle floating radial highlights */
-    body::after {
-      content: "";
-      position: absolute;
-      right: -10%;
-      bottom: -20%;
-      width: 40vmax;
-      height: 40vmax;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 200, 200, 0.08), transparent 30%),
-        radial-gradient(circle at 70% 70%, rgba(226, 56, 56, 0.06), transparent 20%);
-      filter: blur(24px);
-      z-index: 0;
-      animation: floatSpot 14s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    @keyframes bgShift {
-      0% {
-        background-position: 0% 50%;
-        transform: rotate(6deg) scale(1);
-      }
-
-      50% {
-        background-position: 100% 50%;
-        transform: rotate(8deg) scale(1.03);
-      }
-
-      100% {
-        background-position: 0% 50%;
-        transform: rotate(6deg) scale(1);
-      }
-    }
-
-    @keyframes floatSpot {
-      0% {
-        transform: translateY(0) scale(1);
-        opacity: 0.95;
-      }
-
-      50% {
-        transform: translateY(-6%) scale(1.02);
-        opacity: 1;
-      }
-
-      100% {
-        transform: translateY(0) scale(1);
-        opacity: 0.95;
-      }
-    }
-
-    .container {
-      background-color: #fff;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-      position: relative;
-      overflow: hidden;
-      width: 960px;
-      max-width: 100%;
-      min-height: 620px;
-    }
-
-    .container p {
-      font-size: 14px;
-      line-height: 20px;
-      /* letter-spacing: 0.3px; */
-      margin: 20px 0;
-    }
-
-    .container span {
-      font-size: 12px;
-    }
-
-    .container a {
-      color: #333;
-      font-size: 13px;
-      text-decoration: none;
-      margin: 15px 0 10px;
-    }
-
-    .container button {
-      background-color: #e23838;
-      color: #fff;
-      font-size: 12px;
-      padding: 10px 45px;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    .container button.hidden {
-      background-color: transparent;
-      border-color: #fff;
-    }
-
-    .container form {
-      background-color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 0 40px;
-      height: 100%;
-    }
-
-    .container input {
-      background-color: #eee;
-      border: none;
-      margin: 8px 0;
-      padding: 10px 15px;
-      font-size: 13px;
-      border-radius: 8px;
-      width: 100%;
-      outline: none;
-    }
-
-    .form-container {
-      position: absolute;
-      padding: 5%;
-      top: 0;
-      height: 90%;
-      transition: all 0.6s ease-in-out;
-    }
-
-    .sign-in {
-      left: 0;
-      width: 50%;
-      z-index: 2;
-    }
-
-    .social-icons {
-      margin: 20px 0;
-    }
-
-    .social-icons a {
-      border: 1px solid #ccc;
-      border-radius: 20%;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 3px;
-      width: 40px;
-      height: 40px;
-    }
-
-    .welcome-panel {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 50%;
-      height: 100%;
-      overflow: hidden;
-      transition: all 0.6s ease-in-out;
-      border-radius: 150px 0 0 100px;
-      z-index: 1000;
-    }
-
-
-
-    .welcome-bg {
-      background-color: #e23838;
-      height: 100%;
-      color: #fff;
-      position: relative;
-      left: -100%;
-      height: 100%;
-      width: 200%;
-      transform: translateX(0);
-      transition: all 0.6s ease-in-out;
-    }
-
-
-
-    .welcome-content {
-      position: absolute;
-      width: 50%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 0 30px;
-      text-align: center;
-      top: 0;
-      transform: translateX(0);
-      transition: all 0.6s ease-in-out;
-    }
-
-
-
-    .welcome-content {
-      right: 0;
-      transform: translateX(0);
-    }
-
-
-    .logo img {
-      width: 60px;
-      margin: 10px;
-    }
-
-    .btn-kembali {
-
-      background-color: white;
-      padding: 8px 10px;
-      border-radius: 5px;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-    }
-
-    .copyright {
-      position: absolute;
-      bottom: -55px;
-      /* Bisa diganti jadi 5px atau 30px sesuai selera */
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 13px;
-      color: #777;
-      text-align: center;
-      width: 100%;
-      letter-spacing: 0.3px;
-    }
-
-    /* ============================= */
-    /* RESPONSIVE DESIGN (MOBILE SIMPLER VERSION) */
-    /* ============================= */
-
-    /* Untuk layar kecil (HP / mobile) */
-    @media (max-width: 768px) {
-  body {
-    height: auto;
-    padding: 20px;
-    overflow-y: auto;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  /* Container nyatu sama background */
-  .container {
-    width: 100%;
-    min-height: auto;
-    background: transparent;
-    box-shadow: none;
-    border: none;
-    position: relative;
-  }
-
-  /* Hilangkan panel merah dan efek */
-  .welcome-panel,
-  .container.active .welcome-panel {
-    display: none !important;
-  }
-
-  /* Form login nyatu dengan latar */
-  .sign-in {
-    position: relative;
-    width: 100%;
-    background: transparent;
-    box-shadow: none;
-    border: none;
-    border-radius: 0;
-    padding: 0 20px;
-    margin: 0 auto;
-  }
-
-  /* Input & tombol tetap clean */
-  .container input {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 15px;
-    background: #f3f3f3;
-    border: none;
-    border-radius: 8px;
-    margin-top: 10px;
-  }
-
-  .container button {
-    width: 100%;
-    padding: 14px 0;
-    font-size: 14px;
-    border-radius: 8px;
-    border: none;
-    background: #e23838;
-    color: white;
-    font-weight: 600;
-    margin-top: 16px;
-  }
-
-  .container button:hover {
-    background: #c72d2d;
-  }
-
-  /* Logo & tombol kembali */
-  .logo img {
-    width: 55px;
-    margin: 20px auto 10px auto;
-    display: block;
-  }
-
-  .btn-kembali {
-    display: inline-block;
-    background: #fff;
-    color: #e23838;
-    padding: 8px 12px;
-    font-size: 13px;
-    border-radius: 6px;
-    text-decoration: none;
-    margin-top: 10px;
-    border: 1px solid #e23838;
-  } 
-
-  /* Copyright di bawah layar */
-  .copyright {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    font-size: 12px;
-    color: #888;
-    width: 100%;
-  }
-
-  /* Hilangkan efek animasi latar */
-  body::before,
-  body::after {
-    display: none;
-  }
-}
-
-    /* ============================= */
-    /* HEADER MOBILE */
-    /* ============================= */
-    .mobile-header {
-      display: none;
-      /* default: tidak muncul di desktop */
-    }
-
-    /* Tampil hanya di mobile */
-    @media (max-width: 768px) {
-      .mobile-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-
-      .title-header {
-        font-size: 18px;
-        font-weight: 700;
-        color: #e23838;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-5px);
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            --primary-color: #d90429;
+            --primary-hover: #c92a2a;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius: 16px;
+            --shadow: 0 10px 25px rgba(226, 56, 56, 0.1);
+            --success-bg: #dcfce7;
+            --success-icon: #16a34a;
+            --error-bg: #fee2e2;
+            --error-icon: #dc2626;
         }
 
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text-main); }
+
+        .login-card {
+            background-color: var(--card-bg); width: 100%; max-width: 400px; padding: 40px 30px;
+            border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color);
+            text-align: center; animation: fadeIn 0.6s ease-out; position: relative;
         }
-      }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-      .copyright {
-        position: fixed;
-        bottom: 10px;
-        text-align: center;
-        width: 100%;
-        font-size: 13px;
-        color: #777;
-      }
+        .logo { margin-bottom: 20px; display: flex; justify-content: center; }
+        .logo img { width: 70px; height: 70px; object-fit: contain; }
 
-    }
+        h2 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 700; color: var(--text-main); }
+        .subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.5; }
 
-    /* Tombol Daftar hanya muncul di layar mobile */
-    .btn-daftar-mobile {
-      display: none;
-      /* sembunyikan di desktop */
-    }
+        .field { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-main); margin-bottom: 8px; margin-left: 2px; }
+        .input-group { position: relative; }
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; fill: var(--text-muted); pointer-events: none; transition: fill 0.3s; }
+        
+        input {
+            width: 100%; padding: 12px 14px 12px 44px; border: 1px solid var(--border-color); border-radius: 10px;
+            font-size: 0.95rem; color: var(--text-main); transition: all 0.3s ease; background-color: #fff;
+        }
+        input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(226, 56, 56, 0.1); }
+        input:focus + .input-icon { fill: var(--primary-color); }
 
-    @media (max-width: 768px) {
-      .btn-daftar-mobile {
-        display: inline-block;
-        margin-top: 10px;
-        width: 265px;
-        text-align: center;
-        background-color: #fff;
-        color: #e23838;
-        border: 1.5px solid #e23838;
-        padding: 12px ;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: 0.2s;
-      }
+        .btn {
+            display: block; width: 100%; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 1rem;
+            text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); color: #fff;
+        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
 
-      .btn-daftar-mobile:hover {
-        background-color: #e23838;
-        color: #fff;
-      }
-    }
-  </style>
+        .btn-back {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px;
+            margin-top: 15px; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none;
+            border-radius: 10px; transition: all 0.2s; background-color: transparent;
+        }
+        .btn-back:hover { color: var(--primary-color); background-color: #fff1f1; }
+
+        .link-register { display: block; margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); text-decoration: none; }
+        .link-register span { color: var(--primary-color); font-weight: 600; }
+
+        .alert-content { margin: 20px 0; }
+        .icon-wrapper-alert { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }
+        .icon-wrapper-alert svg { width: 40px; height: 40px; }
+
+        .success .icon-wrapper-alert { background-color: var(--success-bg); }
+        .success .icon-wrapper-alert svg { fill: var(--success-icon); }
+        .success h2 { color: var(--success-icon); }
+        .success .btn { background-color: var(--primary-color); } 
+
+        .error .icon-wrapper-alert { background-color: var(--error-bg); }
+        .error .icon-wrapper-alert svg { fill: var(--error-icon); }
+        .error h2 { color: var(--error-icon); }
+        .error .btn { background-color: var(--error-icon); }
+    </style>
 </head>
-
 <body>
 
-  <header class="mobile-header">
-    <h1 class="title-header">PMR MILLENIUM</h1>
-    </ul>
-    </nav>
-  </header>
-
-  <div class="container" id="container">
-    <div class="form-container sign-in">
-      <form action="" method="POST">
-        <div class="logo">
-          <img src="../Gambar/logpmi.png" alt="PMR Millenium Logo">
-        </div>
-        <h1>Login</h1>
-        <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <button type="submit" name="login">Login</button>
-
-
-        <a href="../Daftar/register.html" target="_blank"
-          class="btn-daftar-mobile">Ingin Bergabung? Daftar Sekarang.</a>
-        <a href="../Halaman Utama/index.html" class="btn-kembali">← Kembali ke Beranda</a>
-        <p class="copyright">© 2025 PMR Millenium. All rights reserved.</p>
-      </form>
+<div class="login-card">
+    <div class="logo">
+        <img src="../Gambar/logpmi.png" alt="Logo PMR">
     </div>
-    <div class="welcome-panel">
-      <div class="welcome-bg">
-        <div class="welcome-content">
+
+    <?php if ($status === 'success'): ?>
+        <div class="alert-content success">
+            <div class="icon-wrapper-alert">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <h2>Login Berhasil!</h2>
+            <p class="subtitle">Selamat datang, <strong><?= htmlspecialchars($displayUsername) ?></strong>.<br>Mengalihkan...</p>
+            <a href="<?= $redirectLink ?>" class="btn btn-primary">Masuk Dashboard &rarr;</a>
         </div>
-        <div class="welcome-content">
-          <h1>Selamat Datang!</h1>
-          <p>"PMR bukan sekadar organisasi, ini adalah panggilan hati."</p>
-          <button class="hidden" id="register">Daftar</button>
+
+    <?php elseif ($status === 'error'): ?>
+        <div class="alert-content error">
+            <div class="icon-wrapper-alert">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </div>
+            <h2>Login Gagal</h2>
+            <p class="subtitle">Username atau password salah.</p>
+            <a href="login.php" class="btn">Coba Lagi</a>
         </div>
-      </div>
-    </div>
-  </div>
-  <script>
 
-    const registerButton = document.getElementById('register');
-    registerButton.addEventListener('click', () => {
-      window.location.href = '../Daftar/register.html';
-    });
+    <?php else: ?>
+        <h2>Login PMR</h2>
+        <p class="subtitle">Silakan masuk untuk mengakses akun Anda.</p>
 
+        <form action="" method="POST">
+            <div class="field">
+                <label for="username">Username</label>
+                <div class="input-group">
+                    <input type="text" name="username" id="username" placeholder="Masukkan username" required autocomplete="off">
+                    <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </div>
 
-  </script>
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <input type="password" name="password" id="password" placeholder="Masukkan password" required>
+                    <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                </div>
+            </div>
+            
+            <button type="submit" name="login" class="btn btn-primary">Login Sekarang</button>
+        </form>
+
+        <a href="../Daftar/register.php" class="link-register">Belum punya akun? <span>Daftar Sekarang</span></a>
+        <a href="../Halaman Utama/index.html" class="btn-back">Kembali ke Beranda</a>
+    <?php endif; ?>
+
+</div>
 
 </body>
-
 </html>
